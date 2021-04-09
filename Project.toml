@@ -1,0 +1,4 @@
+name = "HerbLanguage"
+uuid = "6e24ae89-a404-4b09-b30f-50a2434815b2"
+authors = ["Sebastijan Dumancic <sebastijan.dumancic@gmail.com>"]
+version = "0.1.0"
