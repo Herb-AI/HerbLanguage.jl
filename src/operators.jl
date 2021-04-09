@@ -14,7 +14,10 @@ end
 Base.:!(literal::Literal) = Negation(literal)
 
 
-# easier syntax for constructing clauses
+
+"""
+    Easier syntax for constructing clauses
+"""
 function Base.:&(left::Union{Literal,Negation}, right::Union{Negation,Literal}) 
     Conj([left, right])
 end

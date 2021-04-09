@@ -51,16 +51,25 @@ end
     [a-z].* || '.*' || ".*"     -> Constant
     functor(args)               -> Structure
     [...]                       -> List
+    [X|Y]                       -> LPair
 """
 function parse_prolog(elem::String)
     if tryparse(Int,elem) != nothing
         tryparse(Int, elem)
     elseif tryparse(Float32, elem) != nothing
         tryparse(Float32, elem)
-    elseif startswith(elem, "[") 
-        args_to_parse = elem[begin+1:end-1]
-        parsed_args = split_compound_args(args_to_parse)
-        List([parse_prolog(a) for a in parsed_args])
+    elseif startswith(elem, "[")
+        if occursin("|", elem)
+            elem = elem[begin+1:end-1]
+            separator_index = findfirst(isequal('|'), elem)
+            head = elem[begin:separator_index-1]
+            tail = elem[separator_index+1:end]
+            LPair(parse_prolog(head), parse_prolog(tail))
+        else
+            args_to_parse = elem[begin+1:end-1]
+            parsed_args = split_compound_args(args_to_parse)
+            List([parse_prolog(a) for a in parsed_args])
+        end
     elseif occursin("(", elem)
         open_bracket = findfirst(isequal('('), elem)
         closed_bracket = findlast(isequal(')'), elem)
