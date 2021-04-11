@@ -64,22 +64,27 @@ struct Literal <: Formula
     predicate::Predicate
     arguments::Vector{Term}
 
-    Literal(x,y) = length(arguments) == x.arity ? new(x,y) : error("Number of arguments doesn't match; required $(predicate.arity), given $(size(y))")
+    # Literal(x,y) = length(arguments) == x.arity ? new(x,y) : error("Number of arguments doesn't match; required $(predicate.arity), given $(size(y))")
+end
+
+"Structure representing a proposition"
+struct Proposition <: Formula
+    name::String
 end
 
 "Structure representing negation"
 struct Negation <: Formula
-    literal::Literal
+    literal::Union{Literal,Proposition}
 end
 
 "Structure representing conjuncions/body of a clause"
 struct Conj <: Formula
-    elements::Vector{Union{Literal,Negation}}
+    elements::Vector{Union{Literal,Negation,Proposition}}
 end
 
 "Structure representing clauses defined by head and body"
 struct Clause <: Formula
-    head::Literal
+    head::Union{Literal,Proposition}
     body::Conj
 end
 
@@ -104,6 +109,7 @@ end
     Comparisons
 """
 Base.:(==)(term1::Constant,term2::Constant) = term1.name == term2.name && term1.type == term2.type
+Base.:(==)(prop1::Proposition, prop2::Proposition) = prop1.name == prop2.name
 Base.:(==)(type1::Type, type2::Type) = type1.name == type2.name
 Base.:(==)(term1::Variable, term2::Variable) = term1.name == term2.name && term1.type == term2.type
 Base.:(==)(term1::Structure, term2::Structure) = term1.functor == term2.functor && term1.arguments == term2.arguments
@@ -120,8 +126,12 @@ function Base.show(io::IO, c::Constant)
     print(io, c.name)
 end
 
-function Base.show(io::IO, v:Variable)
+function Base.show(io::IO, v::Variable)
     print(io, v.name)
+end
+
+function Base.show(io::IO, p::Proposition)
+    print(io, p.name)
 end
 
 function Base.show(io::IO, f::Functor)
@@ -149,7 +159,7 @@ function Base.show(io::IO, l::Literal)
 end
 
 function Base.show(io::IO, n::Negation)
-    print(io, "\+ ", repr(n.literal))
+    print(io, "\\+ ", repr(n.literal))
 end
 
 function Base.show(io::IO, cl::Clause)

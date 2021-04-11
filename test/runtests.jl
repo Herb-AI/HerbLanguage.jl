@@ -1,4 +1,4 @@
 using HerbLanguage
 using Test
 
-include("parser.jl")
+include("parsing.jl")

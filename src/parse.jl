@@ -49,11 +49,13 @@ end
 
     [A-Z].* || _.*              -> Variable
     [a-z].* || '.*' || ".*"     -> Constant
-    functor(args)               -> Structure
+    functor(args)               -> Structure if start_with_literals=false, otherwise Literal
     [...]                       -> List
     [X|Y]                       -> LPair
+    \\+ ...                     -> Negation
 """
-function parse_prolog(elem::String)
+function parse_prolog(elem::String; start_with_literals=false)
+    elem = String(strip(elem))
     if tryparse(Int,elem) != nothing
         tryparse(Int, elem)
     elseif tryparse(Float32, elem) != nothing
@@ -70,18 +72,56 @@ function parse_prolog(elem::String)
             parsed_args = split_compound_args(args_to_parse)
             List([parse_prolog(a) for a in parsed_args])
         end
+    elseif startswith(elem, "\\+")
+        elem = strip(elem[begin+2:end])
+        Negation(parse_prolog(elem, start_with_literals=true))
     elseif occursin("(", elem)
         open_bracket = findfirst(isequal('('), elem)
         closed_bracket = findlast(isequal(')'), elem)
         functor_name = elem[begin:open_bracket-1]
         args_to_parse = elem[open_bracket+1:closed_bracket-1]
         parsed_args = split_compound_args(args_to_parse)
-        Structure(c_functor!(functor_name, length(parsed_args)), [parse_prolog(a) for a in parsed_args])
+
+        if start_with_literals
+            Literal(c_pred!(functor_name, length(parsed_args)), [parse_prolog(a) for a in parsed_args])
+        else
+            Structure(c_functor!(functor_name, length(parsed_args)), [parse_prolog(a) for a in parsed_args])
+        end
     elseif isuppercase(elem[1]) || startswith(elem, "_") 
         c_var!(elem)
-    elseif islowercase(elem[1]) || startswith(elem, "'") || startswith(elem, "\"")
+    elseif (islowercase(elem[1]) || startswith(elem, "'") || startswith(elem, "\"")) && !start_with_literals
         c_const!(elem)
+    elseif islowercase(elem[1]) && start_with_literals
+        Proposition(elem)
     else
         throw(DomainError(elem, "don't know how to convert it"))
     end
 end
+
+"""
+    Parses a clause from a string
+"""
+function parse_clause(elem::String)
+    sep = findfirst(":-", elem)
+    head = elem[begin:sep[begin]-1]
+    body = split_compound_args(elem[sep[begin+1]+1:end])
+    Clause(parse_prolog(head, start_with_literals=true), Conj([parse_prolog(l, start_with_literals=true) for l in body]))
+end
+
+"""
+    Parses a Prolog expression from a string
+    asssumes a single clause
+
+    base=true the first encounter of a compound structure is deemed Literal; otherwise Structure
+"""
+function from_string(elem::String; base=true)
+    if occursin(":-", elem)
+        parse_clause(elem)
+    else
+        parse_prolog(elem, start_with_literals=base)
+    end
+end
+
+
+
+

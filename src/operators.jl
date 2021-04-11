@@ -18,19 +18,19 @@ Base.:!(literal::Literal) = Negation(literal)
 """
     Easier syntax for constructing clauses
 """
-function Base.:&(left::Union{Literal,Negation}, right::Union{Negation,Literal}) 
+function Base.:&(left::Union{Literal,Negation,Proposition}, right::Union{Negation,Literal,Proposition}) 
     Conj([left, right])
 end
 
-function Base.:&(left::Conj, right::Union{Literal,Negation})
+function Base.:&(left::Conj, right::Union{Literal,Negation,Proposition})
     Conj(vcat(left, right))
 end
 
-function Base.:(<=)(left::Literal, right::Conj)
+function Base.:(<=)(left::Union{Literal,Proposition}, right::Conj)
     Clause(left, right)
 end
 
-function Base.:(<=)(left::Literal, right::Union{Literal,Negation})
+function Base.:(<=)(left::Union{Literal,Proposition}, right::Union{Literal,Negation})
     Clause(left, Conj(right))
 end
 
