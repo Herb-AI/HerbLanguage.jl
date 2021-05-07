@@ -6,9 +6,10 @@ mutable struct Context
     variables::Dict{Type,Dict{String,Variable}}
     functors::Dict{Int,Dict{String,Functor}}
     types::Dict{String,Type}
+    propositions::Dict{String,Proposition}
 
     function Context()
-        return new(Dict(), Dict(), Dict(), Dict(), Dict())
+        return new(Dict(), Dict(), Dict(), Dict(), Dict(), Dict())
     end
 end
 
@@ -26,7 +27,7 @@ function c_type!(name::String, context::Context)
     context.types[name]
 end
 
-c_type!(name::String) = c_type!(name, global_context)
+c_type(name::String) = c_type!(name, global_context)
 
 
 
@@ -44,9 +45,9 @@ function c_const!(name::String, type::Type, context::Context)
     context.constants[type][name]
 end
 
-c_const!(name::String, type::Type) = c_const!(name, type, global_context)
+c_const(name::String, type::Type) = c_const!(name, type, global_context)
 c_const!(name::String, context::Context) = c_const!(name, c_type!("thing", context), context)
-c_const!(name::String) = c_const!(name, c_type!(name), global_context)
+c_const(name::String) = c_const!(name, c_type(name), global_context)
 
 
 
@@ -64,9 +65,9 @@ function c_var!(name::String, type::Type, context::Context)
     context.variables[type][name]
 end
 
-c_var!(name::String, type::String) = c_var!(name, type, global_context)
+c_var(name::String, type::String) = c_var!(name, type, global_context)
 c_var!(name::String, context::Context) = c_var!(name, c_type!("thing", context), context)
-c_var!(name::String) = c_var!(name, c_type!("thing"), global_context)
+c_var(name::String) = c_var!(name, c_type("thing"), global_context)
 
 
 
@@ -87,8 +88,8 @@ end
 
 c_pred!(name::String, arity::Int, context::Context) = c_pred!(name, arity, fill(c_type!("thing", context), (arity,)), context)
 c_pred!(name::String, arg_types::Vector{Type}, context::Context) = c_pred!(name, length(arg_types), arg_types, context)
-c_pred!(name::String, arity::Int) = c_pred!(name, arity, fill(c_type!("thing"), (arity,)), global_context)
-c_pred!(name::String, arg_types::Vector{Type}) = c_pred!(name, length(arg_types), arg_types, global_context)
+c_pred(name::String, arity::Int) = c_pred!(name, arity, fill(c_type("thing"), (arity,)), global_context)
+c_pred(name::String, arg_types::Vector{Type}) = c_pred!(name, length(arg_types), arg_types, global_context)
 
 
 
@@ -106,4 +107,19 @@ function c_functor!(name::String, arity::Int, context::Context)
     context.functors[arity][name]
 end
 
-c_functor!(name::String, arity::Int) = c_functor!(name, arity, global_context)
+c_functor(name::String, arity::Int) = c_functor!(name, arity, global_context)
+
+
+
+
+
+"Construct proposition"
+function c_prop!(name::String, context::Context)
+    if !haskey(context.propositions, name)
+        context.propositions[name] = Proposition(name)
+    end
+
+    context.propositions[name]
+end
+
+c_prop(name) = c_prop!(name, global_context)

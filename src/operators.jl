@@ -1,13 +1,14 @@
 
 # easier creation of atoms
 
-function (p::Predicate)(args::Vararg{Term})
-    Literal(p, args)
+function (p::Predicate)(args::Vararg{Union{Term,Int64,Float64}})
+    Literal(p, [x for x in args])
 end
 
-function (f::Functor)(args::Vararg{Term})
-    Structure(f, args)
+function (f::Functor)(args::Vararg{Union{Term,Int64,Float64}})
+    Structure(f, [x for x in args])
 end
+
 
 # \+(literal::Literal) = Negation(literal)
 
@@ -31,6 +32,6 @@ function Base.:(<=)(left::Union{Literal,Proposition}, right::Conj)
 end
 
 function Base.:(<=)(left::Union{Literal,Proposition}, right::Union{Literal,Negation})
-    Clause(left, Conj(right))
+    Clause(left, Conj([right]))
 end
 

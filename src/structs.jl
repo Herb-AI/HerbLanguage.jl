@@ -30,20 +30,20 @@ end
 
 struct Structure <: Term
     functor::Functor
-    arguments::Vector{Union{Term,Integer,Float32}}
+    arguments::Vector{Union{Term,Integer,Float64}}
 
-    Structure(x,y) = length(y) == x.arity ? new(x,y) : error("number of given arguments does not match; given $(size(y)), required $(x.arity) ")
+    #Structure(x,y) = length(y) == x.arity ? new(x,y) : error("number of given arguments does not match; given $(size(y)), required $(x.arity) ")
 end
 
 
 " Structure representing list defined by its elements"
 struct List <: Term
-    elements::Vector{Union{Term,Integer,Float32}}
+    elements::Vector{Union{Term,Integer,Float64}}
 end
 
 "Structure representing Pair defined by its elements"
 struct LPair <: Term
-    head::Union{Term,Int,Float32}
+    head::Union{Term,Int,Float64}
     tail::Term
 end
 

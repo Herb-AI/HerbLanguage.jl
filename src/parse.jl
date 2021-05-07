@@ -83,16 +83,16 @@ function parse_prolog(elem::String; start_with_literals=false)
         parsed_args = split_compound_args(args_to_parse)
 
         if start_with_literals
-            Literal(c_pred!(functor_name, length(parsed_args)), [parse_prolog(a) for a in parsed_args])
+            Literal(c_pred(functor_name, length(parsed_args)), [parse_prolog(a) for a in parsed_args])
         else
-            Structure(c_functor!(functor_name, length(parsed_args)), [parse_prolog(a) for a in parsed_args])
+            Structure(c_functor(functor_name, length(parsed_args)), [parse_prolog(a) for a in parsed_args])
         end
     elseif isuppercase(elem[1]) || startswith(elem, "_") 
-        c_var!(elem)
+        c_var(elem)
     elseif (islowercase(elem[1]) || startswith(elem, "'") || startswith(elem, "\"")) && !start_with_literals
-        c_const!(elem)
+        c_const(elem)
     elseif islowercase(elem[1]) && start_with_literals
-        Proposition(elem)
+        c_prop(elem)
     else
         throw(DomainError(elem, "don't know how to convert it"))
     end
@@ -113,6 +113,7 @@ end
     asssumes a single clause
 
     base=true the first encounter of a compound structure is deemed Literal; otherwise Structure
+              0-arity structures are interpreted as propositions; otherwise constants
 """
 function from_string(elem::String; base=true)
     if occursin(":-", elem)

@@ -1,10 +1,10 @@
 @testset "Parsing" begin
  
-    @test isa(from_string("a"), Constant)
+    @test isa(from_string("a", base=false), Constant)
     @test isa(from_string("X"), Variable)
     @test from_string("a").name == "a"
     @test isa(from_string("_"), Variable)
-    @test isa(from_string("'UppercaseConstant'"), Constant)
+    @test isa(from_string("'UppercaseConstant'", base=false), Constant)
 
     s = from_string("t(a,b,c)", base=false)
     @test isa(s, Structure)
