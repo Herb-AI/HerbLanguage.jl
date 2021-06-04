@@ -22,4 +22,25 @@ get_vars(c::Conj) = union((get_vars(e) for e in c.elements)...)
 get_vars(cl::Clause) = union(get_vars(cl.head), get_vars(cl.body))
 
 
+"Get arity"
+get_arity(c::Constant) = 1
+get_arity(f::Functor) = f.arity
+get_arity(p::Predicate) = p.arity
+get_arity(s::Structure) = s.functor.arity
+get_arity(l::Literal) = l.predicate.arity
+get_arity(p::LPair) = 2
+get_arity(v::Variable) = error("Cannot determine the arity of a variable")
+get_arity(cl::Clause) = error("Cannot determine the arity of a clause")
+
+
+"get functor name"
+get_functor_name(f::Functor) = f.name
+get_functor_name(p::Predicate) = p.name
+get_functor_name(s::Structure) = s.functor.name
+get_functor_name(l::Literal) = l.predicate.name
+get_functor_name(c::Constant) = c.name
+get_functor_name(v::Variable) = error("Variables do not have functors")
+get_functor_name(e::Union{Clause,Conj}) = error("Not implemented")
+
+
 
