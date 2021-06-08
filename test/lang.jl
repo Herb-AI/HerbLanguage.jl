@@ -30,4 +30,8 @@
 
     clause2 = p(vX) <= q(vX, vY) & p(vY)
     @test isa(clause2, Clause)
+
+    n = c_pred("n", 1)
+    lit_n1 = n(1)
+    @test isa(lit_n1, Literal)
 end

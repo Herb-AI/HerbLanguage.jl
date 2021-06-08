@@ -38,12 +38,12 @@ end
 
 " Structure representing list defined by its elements"
 struct List <: Term
-    elements::Vector{Union{Term,Integer,Float64}}
+    elements::Vector{Union{Term,Int64,Float64}}
 end
 
 "Structure representing Pair defined by its elements"
 struct LPair <: Term
-    head::Union{Term,Int,Float64}
+    head::Union{Term,Int64,Float64}
     tail::Term
 end
 
@@ -62,7 +62,7 @@ abstract type Formula end
 "Structure representing literals"
 struct Literal <: Formula
     predicate::Predicate
-    arguments::Vector{Term}
+    arguments::Vector{Union{Term,Int64,Float64}}
 
     # Literal(x,y) = length(arguments) == x.arity ? new(x,y) : error("Number of arguments doesn't match; required $(predicate.arity), given $(size(y))")
 end
