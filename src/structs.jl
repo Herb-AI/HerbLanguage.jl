@@ -147,7 +147,7 @@ function Base.show(io::IO, l::List)
 end
 
 function Base.show(io::IO, p::LPair)
-    print(io, "[", repr(l.head), " | ", repr(l.tail), "]")
+    print(io, "[", repr(p.head), " | ", repr(p.tail), "]")
 end
 
 function Base.show(io::IO, p::Predicate)

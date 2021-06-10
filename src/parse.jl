@@ -124,5 +124,92 @@ function from_string(elem::String; base=true)
 end
 
 
+function macro_parse_term(expr)
+    if isa(expr, Number)
+        # numbers remain numbers
+        return :($expr)
+    elseif isa(expr, Symbol)
+        if isuppercase(string(expr)[begin]) || string(expr)[1] == "_"
+            # uppercased symbols are variables
+            v = c_var(string(expr))
+            return :($v)
+        else
+            # lowercase symbols are constants
+            c = c_const(string(expr))
+            return :($c)
+        end
+    elseif isa(expr, Expr) 
+        if expr.head == :call && expr.args[1] != :|
+            # compounds term goes to structure
+            functor_name = string(expr.args[begin])
+            args = [macro_parse_term(e) for e in expr.args[2:end]]
+            s = Structure(c_functor(functor_name, length(args)), args)
+            return :($s)
+        elseif expr.head == :call && expr.args[1] == :|
+            # turns into a LPair
+            head = macro_parse_term(expr.args[2])
+            tail = macro_parse_term(expr.args[3])
+            p = LPair(head, tail)
+            return :($p)
+        elseif expr.head == :vect
+            # turn into list
+            elems = [macro_parse_term(e) for e in expr.args]
+            l = List(elems)
+            return :($l)
+        end
+    end
+end
+
+function macro_parse_body(expr::Union{Symbol,Expr})
+    if expr.args[begin] == :&
+        # parse a conjunction
+        left = macro_parse_body(expr.args[2])
+        right = macro_parse_top(expr.args[3])
+        push!(left, right)
+        return :($left)
+    else
+        # parse single literal
+        container = Vector{Union{Literal, Negation, Proposition}}()
+        push!(container, macro_parse_top(expr))
+        return container
+    end
+end
+
+function macro_parse_top(expr::Union{Symbol,Expr})
+    if isa(expr, Symbol)
+        # a symbol on a top level turns into a propositions
+        prop = c_prop(string(expr))
+        return :($prop)
+    elseif expr.head == :vect
+        # list of clauses, turn into a Program
+        clauses = [macro_parse_top(e) for e in expr.args]
+        prog = Program(clauses)
+        return :($prog)
+    elseif expr.head == :call 
+        if expr.args[begin] == :<=
+            #parse clause 
+            head = macro_parse_top(expr.args[2])
+            body = macro_parse_body(expr.args[3])
+            cl = Clause(head, Conj(body))
+            return :($cl)
+        elseif expr.args[begin] == :! && length(expr.args) == 2
+            lit = macro_parse_top(expr.args[2])
+            neg = Negation(lit)
+            return :($neg)
+        else
+            # parse literal 
+            pred_name = string(expr.args[begin])
+            args = [macro_parse_term(e) for e in expr.args[2:end]]
+            lit = Literal(c_pred(pred_name, length(args)), args)
+            return :($lit)
+        end
+    end
+end
+
+macro prolog(expr)
+    return macro_parse_top(expr)
+end
+
+
 
 

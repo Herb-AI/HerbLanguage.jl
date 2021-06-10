@@ -33,3 +33,33 @@
     @test isa(cl, Clause)
 
 end
+
+@testset "macro parsing" begin
+    program = @prolog [
+        a,
+        p(a, b),
+        p(X),
+        q(X,Y),
+        p(1),
+        r(a, s(b,c)),
+        r(c, s(c,X)),
+        p(X) <= q(X,Y) & z(Y),
+        p2(X) <= p(X) & !z(X),
+        p3(X|Y, Z) <= r(X,Z) & z(Y)
+    ]
+
+    clauses = program.clauses
+
+    @test isa(clauses[begin], Proposition)
+    @test isa(clauses[2], Literal)
+    @test is_ground(clauses[2])
+    @test isa(clauses[3], Literal)
+    @test isa(clauses[4], Literal)
+    @test isa(clauses[5], Literal)
+    @test isa(clauses[6], Literal)
+    @test isa(clauses[7], Literal)
+    @test isa(clauses[8], Clause)
+    @test isa(clauses[9], Clause)
+    @test isa(clauses[10], Clause)
+
+end
