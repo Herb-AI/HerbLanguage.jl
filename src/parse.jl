@@ -185,7 +185,7 @@ function macro_parse_top(expr::Union{Symbol,Expr})
         clauses = [macro_parse_top(e) for e in expr.args]
         prog = Program(clauses)
         return :($prog)
-    elseif expr.head == :call 
+    elseif expr.head == :call
         if expr.args[begin] == :<=
             #parse clause 
             head = macro_parse_top(expr.args[2])
@@ -193,6 +193,7 @@ function macro_parse_top(expr::Union{Symbol,Expr})
             cl = Clause(head, Conj(body))
             return :($cl)
         elseif expr.args[begin] == :! && length(expr.args) == 2
+            # parse negation
             lit = macro_parse_top(expr.args[2])
             neg = Negation(lit)
             return :($neg)
@@ -210,6 +211,70 @@ macro prolog(expr)
     return macro_parse_top(expr)
 end
 
+
+function parse_disjunction(expr)
+    if expr.head == :(::)
+        #parse single literal
+        container = Vector{ProbabilisticLiteral}()
+        push!(container, macro_probabilistic_parse_top(expr))
+        return container
+    else
+        #parse disjunction 
+        left = parse_disjunction(expr.args[2])
+        right = macro_probabilistic_parse_top(expr.args[3])
+        push!(left, right)
+        return :($left)
+    end
+end
+
+
+function isdisjunction(expr)
+    if expr.args[begin] == :|
+        true
+    else
+        false
+    end
+end
+
+
+function macro_probabilistic_parse_top(expr::Union{Expr,Symbol})
+    if expr.head == :(::)
+        #parse probabilistic literal
+        prob = expr.args[begin]
+        literal = macro_parse_top(expr.args[2])
+        plit = ProbabilisticLiteral(prob,literal)
+        return :($plit)
+    elseif expr.head == :call 
+        if isdisjunction(expr)
+            heads = parse_disjunction(expr)
+            ad = AnnotatedDisjunction(heads, true)
+            return :($ad)
+        elseif expr.args[begin] == :<= && isdisjunction(expr.args[2])
+            heads = parse_disjunction(expr.args[2])
+
+            if isa(expr.args[3], Union{Expr, Symbol})
+                # if body is a conjunction
+                body = macro_parse_top(expr.args[3])
+                ad = AnnotatedDisjunction(heads, body)
+                return :($ad)
+            else
+                # if body is true
+                ad = AnnotatedDisjunction(heads, expr.args[3])
+                return :($ad)
+            end
+        else
+            #otherwise proceeds as normal
+            return macro_parse_top(expr)
+        end
+    else 
+        # parse as normal logic program
+        return macro_parse_top(expr)
+    end
+end
+
+macro problog(expr)
+    macro_probabilistic_parse_top(expr)
+end
 
 
 

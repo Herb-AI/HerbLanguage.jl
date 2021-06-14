@@ -90,12 +90,12 @@ end
 
 "Structure representing disjunction"
 struct Disjunction <: Formula
-    clauses::Vector{Clause}
+    clauses::Vector{Formula}
 end
 
 "Structure representing recursions"
 struct Recursion <: Formula
-    clauses::Vector{Clause}
+    clauses::Vector{Formula}
 end
 
 "Structure representing a program"

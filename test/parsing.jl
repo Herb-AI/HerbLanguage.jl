@@ -63,3 +63,10 @@ end
     @test isa(clauses[10], Clause)
 
 end
+
+
+@testset "problog macro parsing" begin
+    @test isa((@problog 0.5::p | 0.5::q), AnnotatedDisjunction)
+    @test isa((@problog 0.5::p(X) | 0.5::q(X)), AnnotatedDisjunction)
+    @test isa((@problog 0.3::p(X,a) | 0.3::p(X,b) | 0.3::p(X,c)), AnnotatedDisjunction)
+end
