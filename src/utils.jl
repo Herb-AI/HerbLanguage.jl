@@ -43,4 +43,14 @@ get_functor_name(v::Variable) = error("Variables do not have functors")
 get_functor_name(e::Union{Clause,Conj}) = error("Not implemented")
 
 
-
+"substitute variables"
+subs(b::Bool, sub::Dict{Variable,Variable}) = b
+subs(c::Constant, sub::Dict{Variable,Variable}) = c
+subs(v::Variable, sub::Dict{Variable,Variable}) = get(sub, v, v)
+subs(s::Structure, sub::Dict{Variable, Variable}) = Structure(s.functor, [subs(t, sub) for t in s.arguments])
+subs(p::Proposition, subs::Dict{Variable,Variable}) = p
+subs(l::List, sub::Dict{Variable,Variable}) = List([subs(e, sub) for e in l.elements])
+subs(p::LPair, sub::Dict{Variable,Variable}) = LPair(subs(p.head, sub), subs(p.tail, sub))
+subs(l::Literal, sub::Dict{Variable,Variable}) = Literal(l.predicate, [subs(a, sub) for a in l.arguments])
+subs(c::Conj, sub::Dict{Variable, Variable}) = Conj([subs(e, sub) for e in c.elements])
+subs(cl::clause, sub::Dict{Variable,Variable}) = Clause(subs(cl.head, sub), subs(cl.body, sub))
