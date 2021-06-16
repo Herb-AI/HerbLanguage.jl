@@ -53,4 +53,4 @@ subs(l::List, sub::Dict{Variable,Variable}) = List([subs(e, sub) for e in l.elem
 subs(p::LPair, sub::Dict{Variable,Variable}) = LPair(subs(p.head, sub), subs(p.tail, sub))
 subs(l::Literal, sub::Dict{Variable,Variable}) = Literal(l.predicate, [subs(a, sub) for a in l.arguments])
 subs(c::Conj, sub::Dict{Variable, Variable}) = Conj([subs(e, sub) for e in c.elements])
-subs(cl::clause, sub::Dict{Variable,Variable}) = Clause(subs(cl.head, sub), subs(cl.body, sub))
+subs(cl::Clause, sub::Dict{Variable,Variable}) = Clause(subs(cl.head, sub), subs(cl.body, sub))
