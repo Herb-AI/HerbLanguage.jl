@@ -277,4 +277,8 @@ macro problog(expr)
 end
 
 
+expr_to_prolog(ex) = macro_parse_top(ex)
+
+expr_to_problog(ex) = macro_probabilistic_parse_top(ex)
+
 
